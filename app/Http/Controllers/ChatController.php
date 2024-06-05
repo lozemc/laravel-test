@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ChatController extends Controller
 {
-    public function createChat(Request $request): \Illuminate\Http\JsonResponse
+    public function createChat(Request $request): JsonResponse
     {
         $validator = validator($request->all(), ['userId' => 'required|integer|exists:users,id']);
 
@@ -34,30 +35,56 @@ class ChatController extends Controller
         return $this->returnJson(true, ['chatId' => $chat->id]);
     }
 
-    public function listChats(): \Illuminate\Http\JsonResponse
+    public function listChats(): JsonResponse
     {
         $currentUser = auth()->id();
-        $chats = Chat::whereHas('users', static function ($query) use ($currentUser) {
+        $chats = Chat::whereHas('users', function ($query) use ($currentUser) {
             $query->where('user_id', $currentUser);
         })
-            ->select(['id as chatId'])
-            ->get()
+            ->with(['users', 'messages'])
+            ->join('messages', 'chats.id', '=', 'messages.chat_id')
+            ->orderBy('messages.created_at', 'desc')
+            ->paginate(20, ['chats.*'])
             ->toArray();
+
+
+        $data = collect($chats['data'])->map(function ($chat) use ($currentUser) {
+            $otherUsers = collect($chat['users'])->filter(function ($user) use ($currentUser) {
+                return $user['id'] !== $currentUser;
+            });
+
+            $chatName = 'Чат с ' . $otherUsers->map(function ($user) {
+                    return $user['firstName'] . ' ' . $user['lastName'];
+                })->implode(', ');
+
+            $users = collect($chat['users'])->map(function ($item) {
+                return collect($item)->except('pivot');
+            });
+
+            return [
+                'chatId' => $chat['id'],
+                'timestamp' => $chat['created_at'],
+                'chatName' => $chatName,
+                'users' => $users,
+            ];
+        });
+
+        $chats['data'] = $data;
 
         return $this->returnJson(true, $chats);
     }
 
-    public function sendMessage(Chat $chat, Request $request): \Illuminate\Http\JsonResponse
+    public function sendMessage(Chat $chat, Request $request): JsonResponse
     {
         $chat->messages()->create([
-          'user_id' => auth()->id(),
-          'message' => $request->input('message'),
+            'user_id' => auth()->id(),
+            'message' => $request->input('message'),
         ]);
 
         return $this->returnJson(true);
     }
 
-    public function getMessages(Chat $chat): \Illuminate\Http\JsonResponse
+    public function getMessages(Chat $chat): JsonResponse
     {
         $messages = $chat->messages()
             ->select(['id as messageId', 'user_id', 'created_at as timestamp', 'message as text'])
@@ -67,9 +94,9 @@ class ChatController extends Controller
             ->toArray();
 
         $messages['data'] = collect($messages['data'])
-            ->map(function ($item){
-               unset($item['user_id']);
-               return $item;
+            ->map(function ($item) {
+                unset($item['user_id']);
+                return $item;
             })
             ->toArray();
 
