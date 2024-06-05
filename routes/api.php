@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +15,15 @@ Route::group(['prefix' => 'v1'], static function () {
 
     Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
 
-        Route::get('users/all', [UserController::class, 'getAllUsers']);
+        Route::get('users', [UserController::class, 'listUsers']);
+
+        Route::post('chats', [ChatController::class, 'createChat']);
+        Route::get('chats', [ChatController::class, 'listChats']);
+        Route::post('chats/{chat}/messages', [ChatController::class, 'sendMessage']);
+        Route::get('chats/{chat}/messages', [ChatController::class, 'getMessages']);
+
+
+
 
     });
 });

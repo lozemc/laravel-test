@@ -6,7 +6,7 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-    public function getAllUsers(): \Illuminate\Http\JsonResponse
+    public function listUsers(): \Illuminate\Http\JsonResponse
     {
         $users = User::select(['id as userId', 'email', 'firstName', 'lastName'])
             ->paginate(20);
