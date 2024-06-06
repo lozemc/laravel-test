@@ -3,10 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ListUsersAction;
+use App\Services\CreateUserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+
+    /**
+     * Регистрация
+     * @bodyParam email string required E-mail пользователя. Example: test@gmail.com
+     * @bodyParam password string required Пароль пользователя. Example: 1s3mdgbfy3dfg
+     * @bodyParam firstName string required Имя пользователя. Example: Ivan
+     * @bodyParam lastName string required Фамилия пользователя. Example: Ivanov
+     * @response {"status":true,"response":{"accessToken":"1|PPKkamHggSeYPk1GEGrXJIaITlBmtVbGQNjhQTQD2471a743"}}
+     * @response 400 {"status": false,"errors": {"email": ["The email field is required."],"password": ["The password field is required."],"firstName": ["The first name field is required."],"lastName": ["The last name field is required."]}}
+     */
+    public function createUser(Request $request, CreateUserService $service): JsonResponse
+    {
+        return $service->createUser($request);
+    }
+
     /**
      * Получение списка пользователей
      * @authenticated

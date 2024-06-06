@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'v1'], static function () {
+    Route::post('users', [UserController::class, 'createUser']);
     Route::post('login', [AuthController::class, 'login'])->name('login');
 
     Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
