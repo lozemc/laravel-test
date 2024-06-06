@@ -8,7 +8,9 @@
         "php": "^8.2",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.9"
+      "laravel/tinker": "^2.9",
+      "lozemc/laravel-actions": "^11.0",
+      "lozemc/laravel-services": "^11.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.0",
@@ -30,7 +32,10 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        }
+        },
+      "files": [
+        "app/helpers.php"
+      ]
     },
     "scripts": {
         "post-autoload-dump": [
